@@ -87,7 +87,7 @@ static void writeTripUpdatesDbContext(JsonArray tripUpdatesArr)
                     foreach(JsonNode? stopTimeUpdate in stopTimeUpdatesArr) {
                         // add StopTimeUpdate
                         db.StopTimeUpdates.Add(new StopTimeUpdate {
-                            TripUpdateId = tripUpdate["id"].ToString(),
+                            TripUpdateId = tripUpdate["id"].ToString(), // foreign key
                             StopSequence = stopTimeUpdate["stopSequence"].GetValue<int>(),
                             ArrivalTime = stopTimeUpdate["arrival"]["time"].ToString(),
                             StopId = stopTimeUpdate["stopId"].ToString(),
@@ -96,31 +96,38 @@ static void writeTripUpdatesDbContext(JsonArray tripUpdatesArr)
                     }
                 }
                 else {
+                    Console.WriteLine("Debugging...1");
                     db.TripUpdates.Add(new TripUpdate {
-                    TripUpdateId = tripUpdate["id"].ToString(),
-                    // TripId = tripUpdate["tripUpdate"]["trip"]["tripId"].ToString(),
-                    // no vehicle id
-                    Timestamp = tripUpdate["tripUpdate"]["timestamp"].ToString()
-                });
+                        TripUpdateId = tripUpdate["id"].ToString(),
+                        // TripId = tripUpdate["tripUpdate"]["trip"]["tripId"].ToString(),
+                        // no vehicle id
+                        Timestamp = tripUpdate["tripUpdate"]["timestamp"].ToString()
+                    });
+                    Console.WriteLine("Debugging...2");
                 }
 
+                Console.WriteLine("Debugging...2.5");
                 // add Trip
-                // trip entity is always present regardless is SCHEDULED or CANCELED
+                // trip entity is always present regardless if SCHEDULED or CANCELED
                 // also check if there is a TripId already present
                 if(!db.Trips
                     .Where(c => c.TripId == tripUpdate["tripUpdate"]["trip"]["tripId"].ToString())
-                    .ToList().Any())
+                    .Any())
                 {
+                    Console.WriteLine("Debugging...3");
                     db.Trips.Add(new Trip {
                         TripId = tripUpdate["tripUpdate"]["trip"]["tripId"].ToString(),
                         StartTime = tripUpdate["tripUpdate"]["trip"]["startTime"].ToString(),
                         StartDate = tripUpdate["tripUpdate"]["trip"]["startDate"].ToString(),
                         ScheduleRelationship = tripUpdate["tripUpdate"]["trip"]["scheduleRelationship"].ToString(),
                         RouteId = tripUpdate["tripUpdate"]["trip"]["routeId"].ToString(),
-                        DirectionId = tripUpdate["tripUpdate"]["trip"]["directionId"].GetValue<int>()
+                        DirectionId = tripUpdate["tripUpdate"]["trip"]["directionId"].GetValue<int>(),
+                        TripUpdateId = tripUpdate["id"].ToString()  // foreign key
                     });
+                    Console.WriteLine("Debugging...4");
                 }
                 db.SaveChanges();
+                Console.WriteLine("Debugging...5");
             }
             // show how dbWrites compare to t
             //Console.WriteLine($"TripUpdate DB Writes:\t{dbWrites}");

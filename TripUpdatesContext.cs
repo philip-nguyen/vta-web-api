@@ -46,7 +46,6 @@ public class TripUpdatesContext : DbContext
 public class TripUpdate
 {
     public String TripUpdateId { get; set; }
-    //public String TripId { get; set; } = default!;
     
     public Trip Trip { get; set; }
     public List<StopTimeUpdate>? StopTimeUpdates { get; } = new List<StopTimeUpdate>();
@@ -64,13 +63,13 @@ public class StopTimeUpdate
     public String? ScheduleRelationship { get; set; }
 
     [ForeignKey("TripUpdateId")]
-    public String TripUpdateId { get; set; } // Required foreign key property
+    public String TripUpdateId { get; set; } = null!; // Required foreign key property
     public TripUpdate TripUpdate { get; set; } = null!; // Required reference navigation to principal
 }
 
 public class Trip
 {
-    public String TripId { get; set; }
+    public String TripId { get; set; } = null!;
     public String? StartTime { get; set; }
     public String? StartDate { get; set; }
     public String? ScheduleRelationship { get; set; }
@@ -78,6 +77,6 @@ public class Trip
     public int DirectionId { get; set; }
 
     [ForeignKey("TripUpdateId")]
-    public String TripUpdateId { get; set; } // Required foreign key property
-    public TripUpdate TripUpdate { get; set; } // Required reference navigation to principal
+    public String TripUpdateId { get; set; } = null!; // Required foreign key property
+    public TripUpdate TripUpdate { get; set; } = null!; // Required reference navigation to principal
 }
