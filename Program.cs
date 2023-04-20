@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes; // deserialize subsections
 using System;
 using System.Linq;
+using Microsoft.EntityFrameworkCore;
 
 // Use an HttpClient object to send GET Request
 using HttpClient client = new();
@@ -13,10 +14,15 @@ client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("app
 // make the HTTP request and process the JSON 
 await ProcessTripUpdatesAsync(client);
 
+// Start web API application
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddDbContext<TripUpdatesContext>();
 var app = builder.Build();
 
 app.MapGet("/", () => "Hello World!");
+
+app.MapGet("/real-time/trip-updates", async (TripUpdatesContext db) =>
+    await db.TripUpdates.Take(100).ToListAsync());
 
 app.Run();
 
@@ -39,9 +45,8 @@ static async Task ProcessTripUpdatesAsync(HttpClient client)
     // Get the entity subsection
     JsonArray tripUpdatesArr = tripNode!["entity"]!.AsArray();
 
+    // Send JsonArray to DB Write function
     writeTripUpdatesDbContext(tripUpdatesArr);
-    
-    
 }
 
 // Function to write to the DB 
@@ -71,8 +76,8 @@ static void writeTripUpdatesDbContext(JsonArray tripUpdatesArr)
                 if(tripUpdate["tripUpdate"]["trip"]["vehicle"] != null){
                     db.TripUpdates.Add(new TripUpdate {
                         TripUpdateId = tripUpdate["id"].ToString(),
-                        TripId = tripUpdate["tripUpdate"]["trip"]["tripId"].ToString(),
-                        VehicleId = tripUpdate["tripUpdate"]["trip"]["vehicle"]["id"].ToString(),
+                        //TripId = tripUpdate["tripUpdate"]["trip"]["tripId"].ToString(),
+                        VehicleId = tripUpdate["tripUpdate"]["vehicle"]["id"].ToString(),
                         Timestamp = tripUpdate["tripUpdate"]["timestamp"].ToString()
                     });
 
@@ -93,7 +98,7 @@ static void writeTripUpdatesDbContext(JsonArray tripUpdatesArr)
                 else {
                     db.TripUpdates.Add(new TripUpdate {
                     TripUpdateId = tripUpdate["id"].ToString(),
-                    TripId = tripUpdate["tripUpdate"]["trip"]["tripId"].ToString(),
+                    // TripId = tripUpdate["tripUpdate"]["trip"]["tripId"].ToString(),
                     // no vehicle id
                     Timestamp = tripUpdate["tripUpdate"]["timestamp"].ToString()
                 });
@@ -102,7 +107,7 @@ static void writeTripUpdatesDbContext(JsonArray tripUpdatesArr)
                 // add Trip
                 // trip entity is always present regardless is SCHEDULED or CANCELED
                 // also check if there is a TripId already present
-                if(!db.TripUpdates
+                if(!db.Trips
                     .Where(c => c.TripId == tripUpdate["tripUpdate"]["trip"]["tripId"].ToString())
                     .ToList().Any())
                 {

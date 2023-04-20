@@ -1,7 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 public class TripUpdatesContext : DbContext
 {
@@ -22,14 +24,32 @@ public class TripUpdatesContext : DbContext
     // special "local" folder for your platform
     protected override void OnConfiguring(DbContextOptionsBuilder options)
         => options.UseSqlite($"Data Source={DbPath}");
+
+    /*
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<StopTimeUpdate>()
+            .HasOne(e => e.TripUpdate)
+            .WithMany(e => e.StopTimeUpdates)
+            .HasForeignKey(e => e.TripUpdateId)
+            .IsRequired();
+
+        modelBuilder.Entity<Trip>()
+            .HasOne(e => e.TripUpdate)
+            .WithOne(e => e.Trip)
+            .HasForeignKey(e => e.TripUpdateId)
+            .IsRequired();
+    }
+    */
 }
 
 public class TripUpdate
 {
     public String TripUpdateId { get; set; }
-    public String TripId { get; set; } = default!;
-
-    public List<StopTimeUpdate>? StopTimeUpdates { get; } = new();
+    //public String TripId { get; set; } = default!;
+    
+    public Trip Trip { get; set; }
+    public List<StopTimeUpdate>? StopTimeUpdates { get; } = new List<StopTimeUpdate>();
 
     public String? VehicleId { get; set; }
     public String? Timestamp { get; set; }
@@ -37,12 +57,15 @@ public class TripUpdate
 
 public class StopTimeUpdate
 {
-    [Key]
-    public String TripUpdateId { get; set; }
+    public int Id { get; set; }
     public int StopSequence { get; set; }
     public String? ArrivalTime { get; set; }
     public String? StopId { get; set; }
     public String? ScheduleRelationship { get; set; }
+
+    [ForeignKey("TripUpdateId")]
+    public String TripUpdateId { get; set; } // Required foreign key property
+    public TripUpdate TripUpdate { get; set; } = null!; // Required reference navigation to principal
 }
 
 public class Trip
@@ -53,4 +76,8 @@ public class Trip
     public String? ScheduleRelationship { get; set; }
     public String? RouteId { get; set; }
     public int DirectionId { get; set; }
+
+    [ForeignKey("TripUpdateId")]
+    public String TripUpdateId { get; set; } // Required foreign key property
+    public TripUpdate TripUpdate { get; set; } // Required reference navigation to principal
 }
