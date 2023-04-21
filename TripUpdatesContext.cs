@@ -17,6 +17,7 @@ public class TripUpdatesContext : DbContext
 	{
 		var folder = Environment.SpecialFolder.LocalApplicationData;
 		var path = Environment.GetFolderPath(folder);
+        //Console.WriteLine(path.ToString());
 		DbPath = System.IO.Path.Join(path, "tripUpdates.db");
 	}
 
@@ -25,22 +26,6 @@ public class TripUpdatesContext : DbContext
     protected override void OnConfiguring(DbContextOptionsBuilder options)
         => options.UseSqlite($"Data Source={DbPath}");
 
-    /*
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
-    {
-        modelBuilder.Entity<StopTimeUpdate>()
-            .HasOne(e => e.TripUpdate)
-            .WithMany(e => e.StopTimeUpdates)
-            .HasForeignKey(e => e.TripUpdateId)
-            .IsRequired();
-
-        modelBuilder.Entity<Trip>()
-            .HasOne(e => e.TripUpdate)
-            .WithOne(e => e.Trip)
-            .HasForeignKey(e => e.TripUpdateId)
-            .IsRequired();
-    }
-    */
 }
 
 public class TripUpdate
