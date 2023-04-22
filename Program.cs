@@ -5,11 +5,33 @@ using System;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 
+// command line arguments
+String api_key, format;
+
+if(args.Count() >= 2) {
+    if(args[0] != "json")
+        Console.WriteLine("Format requred is json or just run 'dotnet run'.");
+    else
+        format = args[0];
+    
+    if(args[1] != "59af72683221a1734f637eae7a7e8d9b")
+        Console.WriteLine("API Key is required or just run 'dotnet run'.");
+    else
+        api_key = args[1];
+}
+else {
+    // These are here is user just uses `dotnet run` command
+    api_key = "59af72683221a1734f637eae7a7e8d9b";
+    format = "json";
+}
+
+
+
 // Use an HttpClient object to send GET Request
 using HttpClient client = new();
 client.DefaultRequestHeaders.Accept.Clear();
-client.DefaultRequestHeaders.Add("Authorization", "59af72683221a1734f637eae7a7e8d9b");
-client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+client.DefaultRequestHeaders.Add("Authorization", api_key);
+client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/"+format));
 
 // make the HTTP request and process the JSON 
 await ProcessTripUpdatesAsync(client);
@@ -29,8 +51,7 @@ app.Run();
 
 // Process TripUpdates JSON data from HTTP request 
 static async Task ProcessTripUpdatesAsync(HttpClient client)
-{
-    // TODO: (EC) create command to accept args for API_KEY and GET params (format=json) 
+{ 
     var json = await client.GetStringAsync(
         "https://api.goswift.ly/real-time/vta/gtfs-rt-trip-updates?format=json"
     );
@@ -67,7 +88,7 @@ static void writeTripUpdatesDbContext(JsonArray tripUpdatesArr)
             //Console.WriteLine($"VehicleId : {tripUpdate["tripUpdate"]["trip"]["vehicle"]}");
             
             
-            // add tripUpdate to db
+            // add tripUpdate to db IF the tripupdate does not already exist
             if(!db.TripUpdates
                 .Where(c => c.TripUpdateId == tripUpdate["id"].ToString())
                 .ToList().Any())

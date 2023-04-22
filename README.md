@@ -31,3 +31,8 @@ dotnet add package Microsoft.EntityFrameworkCore.Design
 dotnet ef database update
 ```
 `dotnet ef database update` utilizes the migrations that are present in the root directory.
+
+## Run the application
+with API Key: `59af72683221a1734f637eae7a7e8d9b` and format `json`
+- `dotnet dev-certs https --trust` (Trust the HTTPS dev certificate by running this. This command does not work on Linux.)
+- `dotnet run json 59af72683221a1734f637eae7a7e8d9b` OR just default `dotnet run` (I have it run by default with api key and format hardcoded)
