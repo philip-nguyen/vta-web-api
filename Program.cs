@@ -6,7 +6,7 @@ using System.Linq;
 using Microsoft.EntityFrameworkCore;
 
 // command line arguments
-String api_key, format;
+String api_key = "", format = "";
 
 if(args.Count() >= 2) {
     if(args[0] != "json")
@@ -81,6 +81,8 @@ static void writeTripUpdatesDbContext(JsonArray tripUpdatesArr)
         // Parse through tripUpdate nodes
         foreach(JsonNode? tripUpdate in tripUpdatesArr)
         {
+            // add all tripUpdate ids to ActiveTripUpdate
+            db.ActiveTripUpdates.Add(new ActiveTripUpdate { ActiveTripUpdateId = tripUpdate["id"].ToString()});
             
             JsonNode tripUpdateData = tripUpdate["tripUpdate"]["trip"]["scheduleRelationship"];
             
@@ -152,6 +154,8 @@ static void writeTripUpdatesDbContext(JsonArray tripUpdatesArr)
             }
             
         }
+        RemoveExpiredTripUpdates();
+        // delete all records from activeTripUpdates
         // show how dbWrites compared to tripUpdate nodes from api
         Console.WriteLine($"TripUpdate DB Writes:\t{dbWrites}");
     }
@@ -159,4 +163,33 @@ static void writeTripUpdatesDbContext(JsonArray tripUpdatesArr)
     int count = tripUpdatesArr.Count;
     Console.WriteLine($"TripUpdateArr Count:\t{count}");
     
+}
+
+// Extra Credit 3
+static void RemoveExpiredTripUpdates()
+{
+    using (var db = new TripUpdatesContext())
+    {
+        var activeTripUpdates = db.ActiveTripUpdates.ToList(); // List<ActiveTripUpdate>
+        var tripUpdatesToDelete = db.TripUpdates.ToList(); //.Except(deleteExpiredTripUpdates); List<TripUpdates>
+        //var expiredTripUdpates = tripUpdatesToDelete.Except(activeTripUpdates);
+
+        foreach (var tripUpdateToDelete in tripUpdatesToDelete)
+        {
+            // if there is NO record in activeTripUpdates table with tripUpdateToDelete.TripUpdateId
+            // then delete from TripUpdates
+            if(!db.ActiveTripUpdates.Where(c => c.ActiveTripUpdateId == tripUpdateToDelete.TripUpdateId).ToList().Any())
+            {
+                db.TripUpdates.Remove(tripUpdateToDelete);
+            }
+            db.SaveChanges();
+        }
+        
+        // remove all records from ActiveTripUdpates
+        foreach (var item in db.ActiveTripUpdates) 
+        {
+            db.ActiveTripUpdates.Remove(item);
+        }
+        db.SaveChanges();
+    }
 }
