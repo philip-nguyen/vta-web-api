@@ -8,6 +8,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 public class TripUpdatesContext : DbContext
 {
 	public DbSet<TripUpdate> TripUpdates { get; set; }
+    public DbSet<ActiveTripUpdate> ActiveTripUpdates { get; set; } 
 	public DbSet<StopTimeUpdate> StopTimeUpdates { get; set; }
     public DbSet<Trip> Trips { get; set; }
 
@@ -37,6 +38,11 @@ public class TripUpdate
 
     public String? VehicleId { get; set; }
     public String? Timestamp { get; set; }
+}
+
+public class ActiveTripUpdate
+{
+    public String ActiveTripUpdateId { get; set; }
 }
 
 public class StopTimeUpdate
